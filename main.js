@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { VRButton } from 'three/addons/webxr/VRButton.js';
-import { XRControllerModelFactory } from
-'three/addons/webxr/XRControllerModelFactory.js';
+import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 let camera, scene, renderer, orbit;
@@ -27,6 +26,7 @@ function init() {
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 50);
     camera.position.set(0, 1.6, 2);
+    scene.add(camera); // Ditambahkan dari kode teman
 
     scene.add(new THREE.HemisphereLight(0xffffff, 0x444455, 1.5));
     const sun = new THREE.DirectionalLight(0xffffff, 1.5);
@@ -34,9 +34,9 @@ function init() {
     scene.add(sun);
 
     const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(10, 10),
-    new THREE.MeshStandardMaterial({ color: 0x2e3447 })
-);
+        new THREE.PlaneGeometry(10, 10),
+        new THREE.MeshStandardMaterial({ color: 0x2e3447 })
+    );
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
     scene.add(new THREE.GridHelper(10, 20, 0x555a6e, 0x3a3f52));
@@ -65,9 +65,7 @@ function init() {
 }
 
 function addObject(geometry, color, x, y, z) {
-    const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
-        color
-    }));
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color }));
     mesh.position.set(x, y, z);
     scene.add(mesh);
     interactables.push(mesh);
@@ -75,7 +73,7 @@ function addObject(geometry, color, x, y, z) {
 
 function onResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
-    amera.updateProjectionMatrix();
+    camera.updateProjectionMatrix(); // Typo 'amera' diperbaiki
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
@@ -87,7 +85,6 @@ function setupControllers() {
 
         controller.addEventListener('connected', (e) => {
             controller.userData.gamepad = e.data.gamepad; // untuk haptic dan thumbstick
-
             controller.add(buildRay());
             log('Controller ' + i + ' terhubung (' + e.data.handedness + ')');
         });
@@ -110,14 +107,15 @@ function buildRay() {
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(0, 0, -1)
     ]);
-    const line = new THREE.Line(geometry);
+    // Material ditambahkan agar garis putih terlihat jelas
+    const line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: 0xffffff }));
     line.name = 'ray';
     line.scale.z = 5;
     return line;
 }
 
-// Menghitung objek yang terkena sinar dari sebuah controller
-function intersectObjects(controller) {
+// Nama fungsi disesuaikan dari intersectObjects menjadi getIntersections
+function getIntersections(controller) {
     tempMatrix.identity().extractRotation(controller.matrixWorld);
     raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
     raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
@@ -160,7 +158,7 @@ function onSqueezeStart(event) {
     const controller = event.target;
     const hits = getIntersections(controller);
     if (hits.length > 0) {
-        hits[0].object.material.color.setHex(Math.floor(Math.random() *0xffffff));
+        hits[0].object.material.color.setHex(Math.floor(Math.random() * 0xffffff));
         pulse(controller, 0.3, 50);
         log('SQUEEZE: warna diubah');
     }
@@ -169,6 +167,7 @@ function onSqueezeStart(event) {
 function render() {
     // Reset sorotan semua objek
     interactables.forEach((o) => o.material.emissive.setHex(0x000000));
+    
     controllers.forEach((c) => {
         const held = c.userData.selected;
         if (held) {
@@ -206,3 +205,6 @@ function onPointerDown(e) {
         log('CLICK: warna diubah');
     }
 }
+
+// Pemanggilan fungsi di akhir agar kode tereksekusi
+init();
