@@ -26,7 +26,6 @@ function init() {
 
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 50);
     camera.position.set(0, 1.6, 2);
-    scene.add(camera); // Ditambahkan dari kode teman
 
     scene.add(new THREE.HemisphereLight(0xffffff, 0x444455, 1.5));
     const sun = new THREE.DirectionalLight(0xffffff, 1.5);
